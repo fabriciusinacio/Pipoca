@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Vendas por Rota</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .route-creator {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input, select, textarea {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .route-tabs {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+            gap: 10px;
+        }
+        
+        .route-tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .route-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .route-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .list-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cash-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .cash-card {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .cash-card.expense {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .cash-card.profit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .low-stock {
+            border-left-color: #f56565;
+            background: #fed7d7;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .cash-flow {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚐 Controle de Vendas por Rota</h1>
+            <p>Gerencie suas vendas, clientes e estoque por cidade</p>
+        </div>
+        
+        <div class="route-creator">
+            <div class="input-group">
+                <input type="text" id="cityName" placeholder="Nome da cidade" style="flex: 1;">
+                <button class="btn btn-primary" onclick="createRoute()">Criar Rota</button>
+            </div>
+        </div>
+        
+        <div class="route-tabs" id="routeTabs">
+            <!-- Tabs das rotas serão inseridas aqui -->
+        </div>
+        
+        <div class="route-content" id="routeContent" style="display: none;">
+            <!-- Controle de Estoque -->
+            <div class="section">
+                <h3>📦 Controle de Estoque</h3>
+                <div class="form-grid">
+                    <input type="text" id="productName" placeholder="Nome do produto">
+                    <input type="number" id="productQuantity" placeholder="Quantidade">
+                    <input type="number" id="productPrice" placeholder="Preço unitário" step="0.01">
+                    <button class="btn btn-secondary" onclick="addProduct()">Adicionar Produto</button>
+                </div>
+                <button class="btn btn-danger" onclick="clearAllData()" style="margin-top: 10px;">🗑️ Limpar Todos os Dados</button>
+                <div id="stockList"></div>
+            </div>
+            
+            <!-- Cadastro de Clientes -->
+            <div class="section">
+                <h3>👥 Clientes</h3>
+                <button class="btn btn-primary" onclick="openClientModal()">Cadastrar Cliente</button>
+                <div id="clientList"></div>
+            </div>
+            
+            <!-- Pedidos -->
+            <div class="section">
+                <h3>🛒 Pedidos</h3>
+                <button class="btn btn-primary" onclick="openOrderModal()">Novo Pedido</button>
+                <div id="orderList"></div>
+            </div>
+            
+            <!-- Despesas -->
+            <div class="section">
+                <h3>💸 Despesas da Rota</h3>
+                <div class="form-grid">
+                    <input type="text" id="expenseDescription" placeholder="Descrição da despesa">
+                    <input type="number" id="expenseAmount" placeholder="Valor" step="0.01">
+                    <button class="btn btn-danger" onclick="addExpense()">Adicionar Despesa</button>
+                </div>
+                <div id="expenseList"></div>
+            </div>
+            
+            <!-- Fluxo de Caixa -->
+            <div class="section">
+                <h3>💰 Fluxo de Caixa</h3>
+                <div class="cash-flow">
+                    <div class="cash-card">
+                        <h4>Receitas</h4>
+                        <p id="totalRevenue">R$ 0,00</p>
+                    </div>
+                    <div class="cash-card expense">
+                        <h4>Despesas</h4>
+                        <p id="totalExpenses">R$ 0,00</p>
+                    </div>
+                    <div class="cash-card profit">
+                        <h4>Lucro</h4>
+                        <p id="totalProfit">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClientModal()">&times;</span>
+            <h3>Cadastrar Cliente</h3>
+            <div class="form-grid">
+                <input type="text" id="clientName" placeholder="Nome">
+                <input type="text" id="clientPhone" placeholder="Telefone">
+                <input type="text" id="clientAddress" placeholder="Endereço">
+                <textarea id="clientNotes" placeholder="Observações" rows="3" style="grid-column: 1/-1;"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveClient()" style="margin-top: 15px;">Salvar Cliente</button>
+        </div>
+    </div>
+    
+    <!-- Modal Pedido -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h3>Novo Pedido</h3>
+            <div class="form-grid">
+                <select id="orderClient">
+                    <option value="">Selecionar cliente</option>
+                </select>
+                <select id="orderProduct">
+                    <option value="">Selecionar produto</option>
+                </select>
+                <input type="number" id="orderQuantity" placeholder="Quantidade" min="1">
+                <input type="number" id="orderDiscount" placeholder="Desconto (%)" min="0" max="100" step="0.01">
+            </div>
+            <div style="margin: 15px 0;">
+                <strong>Total: R$ <span id="orderTotal">0,00</span></strong>
+            </div>
+            <button class="btn btn-primary" onclick="saveOrder()">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <script>
+        let routes = {};
+        let currentRoute = null;
+        
+        // Carregar dados do localStorage ao iniciar
+        function loadData() {
+            const savedRoutes = localStorage.getItem('salesRoutes');
+            const savedCurrentRoute = localStorage.getItem('currentRoute');
+            
+            if (savedRoutes) {
+                routes = JSON.parse(savedRoutes);
+                renderTabs();
+            }
+            
+            if (savedCurrentRoute && routes[savedCurrentRoute]) {
+                switchRoute(savedCurrentRoute);
+            }
+        }
+        
+        // Salvar dados no localStorage
+        function saveData() {
+            localStorage.setItem('salesRoutes', JSON.stringify(routes));
+            if (currentRoute) {
+                localStorage.setItem('currentRoute', currentRoute);
+            }
+        }
+        
+        function createRoute() {
+            const cityName = document.getElementById('cityName').value.trim();
+            if (!cityName) {
+                alert('Por favor, digite o nome da cidade');
+                return;
+            }
+            
+            if (routes[cityName]) {
+                alert('Esta rota já existe');
+                return;
+            }
+            
+            routes[cityName] = {
+                clients: [],
+                products: [],
+                orders: [],
+                expenses: [],
+                totalRevenue: 0,
+                totalExpenses: 0
+            };
+            
+            document.getElementById('cityName').value = '';
+            saveData(); // Salvar após criar rota
+            renderTabs();
+            switchRoute(cityName);
+        }
+        
+        function renderTabs() {
+            const tabsContainer = document.getElementById('routeTabs');
+            tabsContainer.innerHTML = '';
+            
+            Object.keys(routes).forEach(city => {
+                const tab = document.createElement('button');
+                tab.className = 'route-tab';
+                tab.textContent = city;
+                tab.onclick = () => switchRoute(city);
+                tabsContainer.appendChild(tab);
+            });
+        }
+        
+        function switchRoute(city) {
+            currentRoute = city;
+            document.getElementById('routeContent').style.display = 'block';
+            
+            // Atualizar tabs ativos
+            document.querySelectorAll('.route-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent === city) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            renderRouteContent();
+        }
+        
+        function renderRouteContent() {
+            if (!currentRoute) return;
+            
+            const route = routes[currentRoute];
+            
+            // Renderizar estoque
+            renderStock();
+            
+            // Renderizar clientes
+            renderClients();
+            
+            // Renderizar pedidos
+            renderOrders();
+            
+            // Renderizar despesas
+            renderExpenses();
+            
+            // Atualizar fluxo de caixa
+            updateCashFlow();
+        }
+        
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const quantity = parseInt(document.getElementById('productQuantity').value);
+            const price = parseFloat(document.getElementById('productPrice').value);
+            
+            if (!name || !quantity || !price) {
+                alert('Preencha todos os campos do produto');
+                return;
+            }
+            
+            routes[currentRoute].products.push({
+                id: Date.now(),
+                name,
+                quantity,
+                price,
+                originalQuantity: quantity
+            });
+            
+            document.getElementById('productName').value = '';
+            document.getElementById('productQuantity').value = '';
+            document.getElementById('productPrice').value = '';
+            
+            saveData(); // Salvar após adicionar produto
+            renderStock();
+        }
+        
+        function renderStock() {
+            const stockList = document.getElementById('stockList');
+            const products = routes[currentRoute].products;
+            
+            stockList.innerHTML = '';
+            
+            products.forEach(product => {
+                const div = document.createElement('div');
+                div.className = `stock-item ${product.quantity <= 5 ? 'low-stock' : ''}`;
+                div.innerHTML = `
+                    <span><strong>${product.name}</strong> - R$ ${product.price.toFixed(2)}</span>
+                    <span>Qtd: ${product.quantity} ${product.quantity <= 5 ? '⚠️' : ''}</span>
+                `;
+                stockList.appendChild(div);
+            });
+        }
+        
+        function openClientModal() {
+            document.getElementById('clientModal').style.display = 'block';
+        }
+        
+        function closeClientModal() {
+            document.getElementById('clientModal').style.display = 'none';
+            clearClientForm();
+        }
+        
+        function clearClientForm() {
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientAddress').value = '';
+            document.getElementById('clientNotes').value = '';
+        }
+        
+        function saveClient() {
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const address = document.getElementById('clientAddress').value.trim();
+            const notes = document.getElementById('clientNotes').value.trim();
+            
+            if (!name) {
+                alert('Nome do cliente é obrigatório');
+                return;
+            }
+            
+            routes[currentRoute].clients.push({
+                id: Date.now(),
+                name,
+                phone,
+                address,
+                notes,
+                visitHistory: []
+            });
+            
+            saveData(); // Salvar após adicionar cliente
+            closeClientModal();
+            renderClients();
+            updateOrderClientSelect();
+        }
+        
+        function renderClients() {
+            const clientList = document.getElementById('clientList');
+            const clients = routes[currentRoute].clients;
+            
+            clientList.innerHTML = '';
+            
+            clients.forEach(client => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div><strong>${client.name}</strong></div>
+                    <div>📞 ${client.phone || 'Não informado'}</div>
+                    <div>📍 ${client.address || 'Não informado'}</div>
+                    ${client.notes ? `<div>📝 ${client.notes}</div>` : ''}
+                `;
+                clientList.appendChild(div);
+            });
+        }
+        
+        function openOrderModal() {
+            updateOrderClientSelect();
+            updateOrderProductSelect();
+            document.getElementById('orderModal').style.display = 'block';
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+            clearOrderForm();
+        }
+        
+        function clearOrderForm() {
+            document.getElementById('orderClient').value = '';
+            document.getElementById('orderProduct').value = '';
+            document.getElementById('orderQuantity').value = '';
+            document.getElementById('orderDiscount').value = '';
+            document.getElementById('orderTotal').textContent = '0,00';
+        }
+        
+        function updateOrderClientSelect() {
+            const select = document.getElementById('orderClient');
+            const clients = routes[currentRoute].clients;
+            
+            select.innerHTML = '<option value="">Selecionar cliente</option>';
+            
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                select.appendChild(option);
+            });
+        }
+        
+        function updateOrderProductSelect() {
+            const select = document.getElementById('orderProduct');
+            const products = routes[currentRoute].products.filter(p => p.quantity > 0);
+            
+            select.innerHTML = '<option value="">Selecionar produto</option>';
+            
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.quantity} disponível)`;
+                select.appendChild(option);
+            });
+        }
+        
+        // Função para limpar todos os dados (útil para testes ou reset)
+        function clearAllData() {
+            if (confirm('⚠️ ATENÇÃO: Isso irá apagar TODOS os dados salvos (todas as rotas, clientes, produtos, pedidos e despesas). Esta ação não pode ser desfeita. Tem certeza que deseja continuar?')) {
+                localStorage.removeItem('salesRoutes');
+                localStorage.removeItem('currentRoute');
+                routes = {};
+                currentRoute = null;
+                document.getElementById('routeTabs').innerHTML = '';
+                document.getElementById('routeContent').style.display = 'none';
+                alert('✅ Todos os dados foram apagados!');
+            }
+        }
+        
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData(); // Carregar dados salvos ao iniciar
+            
+            // Atualizar total do pedido em tempo real
+            ['orderProduct', 'orderQuantity', 'orderDiscount'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', calculateOrderTotal);
+                }
+            });
+        });
+        
+        function calculateOrderTotal() {
+            const productId = document.getElementById('orderProduct').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value) || 0;
+            const discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            
+            if (!productId || !quantity) {
+                document.getElementById('orderTotal').textContent = '0,00';
+                return;
+            }
+            
+            const product = routes[currentRoute].products.find(p => p.id == productId);
+            if (!product) return;
+            
+            const subtotal = product.price * quantity;
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+            
+            document.getElementById('orderTotal').textContent = total.toFixed(2);
+        }
+        
+        function saveOrder() {
+            const clientId = document.getElementById('orderClient').value;
+            const productId = document.getElementById('orderProduct').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value);
+            const discount = parseFloat(document.getElementById('orderDiscount').value) || 0;
+            
+            if (!clientId || !productId || !quantity) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const product = routes[currentRoute].products.find(p => p.id == productId);
+            const client = routes[currentRoute].clients.find(c => c.id == clientId);
+            
+            if (product.quantity < quantity) {
+                alert('Quantidade insuficiente em estoque');
+                return;
+            }
+            
+            const subtotal = product.price * quantity;
+            const discountAmount = subtotal * (discount / 100);
+            const total = subtotal - discountAmount;
+            
+            // Criar pedido
+            routes[currentRoute].orders.push({
+                id: Date.now(),
+                clientId,
+                clientName: client.name,
+                productId,
+                productName: product.name,
+                quantity,
+                unitPrice: product.price,
+                discount,
+                total,
+                date: new Date().toLocaleString('pt-BR')
+            });
+            
+            // Atualizar estoque
+            product.quantity -= quantity;
+            
+            // Atualizar receita total
+            routes[currentRoute].totalRevenue += total;
+            
+            saveData(); // Salvar após criar pedido
+            closeOrderModal();
+            renderOrders();
+            renderStock();
+            updateCashFlow();
+        }
+        
+        function renderOrders() {
+            const orderList = document.getElementById('orderList');
+            const orders = routes[currentRoute].orders;
+            
+            orderList.innerHTML = '';
+            
+            orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div><strong>Pedido #${order.id}</strong> - ${order.date}</div>
+                    <div>👤 ${order.clientName}</div>
+                    <div>📦 ${order.productName} x ${order.quantity}</div>
+                    <div>💰 R$ ${order.total.toFixed(2)} ${order.discount > 0 ? `(${order.discount}% desc.)` : ''}</div>
+                `;
+                orderList.appendChild(div);
+            });
+        }
+        
+        function addExpense() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            
+            if (!description || !amount) {
+                alert('Preencha todos os campos da despesa');
+                return;
+            }
+            
+            routes[currentRoute].expenses.push({
+                id: Date.now(),
+                description,
+                amount,
+                date: new Date().toLocaleString('pt-BR')
+            });
+            
+            routes[currentRoute].totalExpenses += amount;
+            
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            
+            saveData(); // Salvar após adicionar despesa
+            renderExpenses();
+            updateCashFlow();
+        }
+        
+        function renderExpenses() {
+            const expenseList = document.getElementById('expenseList');
+            const expenses = routes[currentRoute].expenses;
+            
+            expenseList.innerHTML = '';
+            
+            expenses.forEach(expense => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.borderLeftColor = '#f56565';
+                div.innerHTML = `
+                    <div><strong>${expense.description}</strong></div>
+                    <div>💸 R$ ${expense.amount.toFixed(2)} - ${expense.date}</div>
+                `;
+                expenseList.appendChild(div);
+            });
+        }
+        
+        function updateCashFlow() {
+            const route = routes[currentRoute];
+            const profit = route.totalRevenue - route.totalExpenses;
+            
+            document.getElementById('totalRevenue').textContent = `R$ ${route.totalRevenue.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `R$ ${route.totalExpenses.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `R$ ${profit.toFixed(2)}`;
+        }
+        
+        // Fechar modais clicando fora
+        window.onclick = function(event) {
+            const clientModal = document.getElementById('clientModal');
+            const orderModal = document.getElementById('orderModal');
+            
+            if (event.target === clientModal) {
+                closeClientModal();
+            }
+            if (event.target === orderModal) {
+                closeOrderModal();
+            }
+        }
+    </script>
+</body>
+</html>
